@@ -87,7 +87,7 @@ def mnist_loaders(batch_size: int):
 
 def train(loader, model, opt, epoch):
     model.train()
-    train_loss, train_err = 0, 0
+    train_loss, train_acc = 0, 0
 
     for i, (X, y) in enumerate(loader):
         if y.dim() == 2:
@@ -95,10 +95,10 @@ def train(loader, model, opt, epoch):
 
         out = model(X)
         ce = nn.CrossEntropyLoss()(out, y)
-        err = (out.max(1)[1] != y).float().sum() / X.size(0)
+        acc = (out.max(1)[1] == y).float().sum() / X.size(0)
 
         train_loss += ce.item()
-        train_err += err.item()
+        train_acc += acc.item()
 
         opt.zero_grad() # initialize grad
         ce.backward() # back propagation
@@ -106,13 +106,13 @@ def train(loader, model, opt, epoch):
 
     torch.cuda.empty_cache()
     avg_train_loss = train_loss / len(loader)
-    avg_train_err = train_err / len(loader)
+    avg_train_acc = train_acc / len(loader)
 
-    return avg_train_loss, avg_train_err
+    return avg_train_loss, avg_train_acc
 
 def test(loader, model, epoch):
     model.eval()
-    val_loss, val_err = 0, 0
+    val_loss, val_acc = 0, 0
 
     for i, (X, y) in enumerate(loader):
         if y.dim() == 2:
@@ -120,16 +120,16 @@ def test(loader, model, epoch):
 
         out = model(X)
         ce = nn.CrossEntropyLoss()(out, y)
-        err = (out.max(1)[1] == y).float().sum() / X.size(0)
+        acc = (out.max(1)[1] == y).float().sum() / X.size(0)
 
         val_loss += ce.item()
-        val_err += err.item()
+        val_acc += acc.item()
 
     torch.cuda.empty_cache()
     avg_val_loss = val_loss / len(loader)
-    avg_val_err = val_err / len(loader)
+    avg_val_acc = val_acc / len(loader)
 
-    return avg_val_loss, avg_val_err
+    return avg_val_loss, avg_val_acc
 
 if __name__ == "__main__":
     args = argparser()
